@@ -177,7 +177,7 @@ export default function Home() {
     return false;
   });
   
-  const recentPulls = bannerHistory.slice(0, 6);
+  const recentPulls = bannerHistory.slice(0, 10);
   const totalSpent = gameState.stats.totalOroberylSpent || 0;
   const moneySpent = (totalSpent / 18150) * 70;
 
@@ -204,10 +204,10 @@ export default function Home() {
     switch (type) {
       case "limited":
         return {
-          title: "EVENT: PERLICA",
-          subtitle: "Operator: Perlica",
+          title: "EVENT: LAEVATAIN",
+          subtitle: "Operator: LAEVATAIN",
           description:
-            "Administrator of the Endfield Industries base. Specializes in tactical command and energy manipulation.",
+            "Red hair girl...",
           imageUrl:
             "https://endfield.wiki.gg/images/thumb/Snapshot_Laevatain_5.png/1920px-Snapshot_Laevatain_5.png?b4b08a",
           badge: "Limited Time",
@@ -372,7 +372,7 @@ export default function Home() {
                 </p>
                 {activeBanner === "limited" && (
                   <div className="mt-2 flex gap-4 text-sm font-mono text-gray-300 text-outline-strong">
-                    <span>CLASS: GUARD</span>
+                    <span>CLASS: STRIKER</span>
                     <span>{"//"}</span>
                     <span className="text-primary">RATE UP: 50%</span>
                   </div>
