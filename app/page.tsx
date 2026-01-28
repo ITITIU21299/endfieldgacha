@@ -311,7 +311,7 @@ export default function Home() {
             <div className="flex gap-8 min-w-max px-2">
               {(
                 [
-                  { type: "limited", label: "EVENT: PERLICA" },
+                  { type: "limited", label: "EVENT: LAEVATAIN" },
                   { type: "standard", label: "STANDARD" },
                   { type: "weapon", label: "WEAPON" },
                 ] as const
