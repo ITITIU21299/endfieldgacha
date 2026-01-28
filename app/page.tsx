@@ -747,11 +747,7 @@ export default function Home() {
               ) : (
                 <div className="space-y-2">
                   {currentHistoryPage.map((pull) => {
-                    // Find the original position in the full banner history
-                    const originalIndex = bannerHistory.findIndex(
-                      (p) => p.id === pull.id
-                    );
-                    const pullNumber = bannerHistory.length - originalIndex;
+                    const pullNumber = pull.pullIndex ?? 0;
                     const date = new Date(pull.timestamp);
                     const imageSrc =
                       pull.imageUrl ||

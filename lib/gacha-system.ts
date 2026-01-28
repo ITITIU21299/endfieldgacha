@@ -13,6 +13,7 @@ export interface PullResult {
   type: ItemType;
   isFeatured?: boolean;
   imageUrl?: string;
+  pullIndex?: number; // 1-based index of this pull within its banner
 }
 
 export interface BannerState {
@@ -50,14 +51,56 @@ export interface GameState {
 // Character pool (simplified - in real game would be larger)
 const CHARACTER_POOL = {
   6: [
-    { name: "Laevatain", isFeatured: true, imageUrl: "https://www.prydwen.gg/static/5909b148a77c8311b612a8a0f2306976/b26e2/Laevatain_card.webp" },
-    { name: "Ember", isFeatured: false, imageUrl: "https://www.prydwen.gg/static/271c93d0a66fc6608a907ddb44924455/b26e2/Ember_card.webp" },
-    { name: "Gilberta", isFeatured: false, imageUrl: "https://www.prydwen.gg/static/ea11bc1f5a07f87e1f09b427077f80ce/b26e2/Gilberta_card.webp" },
-    { name: "Yvonne", isFeatured: false, imageUrl: "https://www.prydwen.gg/static/3329002cd26c80ef654481fb8470b6eb/b26e2/Yvonne_card.webp" },
-    { name: "Last Rite", isFeatured: false, imageUrl: "https://www.prydwen.gg/static/2a92e48cfa9514dda6d3ae2bae3464c7/b26e2/lastrite_card.webp" },
-    { name: "Ardelina", isFeatured: false, imageUrl: "https://www.prydwen.gg/static/33dc6ba762f79eb801a225df3f23fc63/b26e2/ardelia_card.webp" },
-    { name: "Lifeng", isFeatured: false, imageUrl: "https://www.prydwen.gg/static/824a2636112f900b39e0b880f0721a70/b26e2/Lifeng_card.webp" },
-    { name: "Pogranichnik", isFeatured: false, imageUrl: "https://www.prydwen.gg/static/93cc60b9b7b5d8e4d10d75049c13a12d/b26e2/pog_card.webp" },
+    {
+      name: "Laevatain",
+      isFeatured: true,
+      imageUrl:
+        "https://www.prydwen.gg/static/5909b148a77c8311b612a8a0f2306976/b26e2/Laevatain_card.webp",
+    },
+    {
+      name: "Ember",
+      isFeatured: false,
+      imageUrl:
+        "https://www.prydwen.gg/static/271c93d0a66fc6608a907ddb44924455/b26e2/Ember_card.webp",
+    },
+    {
+      name: "Gilberta",
+      isFeatured: false,
+      willFeatured: true,
+      imageUrl:
+        "https://www.prydwen.gg/static/ea11bc1f5a07f87e1f09b427077f80ce/b26e2/Gilberta_card.webp",
+    },
+    {
+      name: "Yvonne",
+      isFeatured: false,
+      willFeatured: true,
+      imageUrl:
+        "https://www.prydwen.gg/static/3329002cd26c80ef654481fb8470b6eb/b26e2/Yvonne_card.webp",
+    },
+    {
+      name: "Last Rite",
+      isFeatured: false,
+      imageUrl:
+        "https://www.prydwen.gg/static/2a92e48cfa9514dda6d3ae2bae3464c7/b26e2/lastrite_card.webp",
+    },
+    {
+      name: "Ardelina",
+      isFeatured: false,
+      imageUrl:
+        "https://www.prydwen.gg/static/33dc6ba762f79eb801a225df3f23fc63/b26e2/ardelia_card.webp",
+    },
+    {
+      name: "Lifeng",
+      isFeatured: false,
+      imageUrl:
+        "https://www.prydwen.gg/static/824a2636112f900b39e0b880f0721a70/b26e2/Lifeng_card.webp",
+    },
+    {
+      name: "Pogranichnik",
+      isFeatured: false,
+      imageUrl:
+        "https://www.prydwen.gg/static/93cc60b9b7b5d8e4d10d75049c13a12d/b26e2/pog_card.webp",
+    },
   ],
   5: [
     { name: "Alesh", isFeatured: false, imageUrl: "https://www.prydwen.gg/static/4ab4a04bc6ea4608e3fdc0b029e8adbd/b26e2/alesh_card.webp" },
@@ -169,7 +212,16 @@ function pullCharacter(
   bannerType: BannerType,
   forceFeatured?: boolean
 ): PullResult {
-  const pool = CHARACTER_POOL[rarity as keyof typeof CHARACTER_POOL];
+  const allCandidates = CHARACTER_POOL[rarity as keyof typeof CHARACTER_POOL] as Array<
+    { name: string; isFeatured?: boolean; willFeatured?: boolean; imageUrl?: string }
+  >;
+  let pool = allCandidates;
+
+  // For standard banner 6★, exclude units that are not in the standard pool (e.g., future limited units)
+  if (bannerType === "standard" && rarity === 6) {
+    pool = allCandidates.filter((c) => !c.willFeatured);
+  }
+
   if (!pool || pool.length === 0) {
     // Fallback
     return {
@@ -333,6 +385,9 @@ export function performPull(
         ? pullWeapon(rarity, banner.guaranteeCount)
         : pullCharacter(rarity, bannerType, forceFeatured);
 
+    // Assign a 1-based sequence index within this banner
+    result.pullIndex = (banner.totalPulls ?? 0) + 1;
+
     results.push(result);
 
     // Update banner state
@@ -340,7 +395,7 @@ export function performPull(
     banner.totalPulls++;
     banner.lastRarity = rarity;
 
-    // Reset pity on 6★ and record it
+    // Reset 80-pity and record on every 6★ pull (including spark).
     if (rarity === 6) {
       state.stats.pityHistory.push(banner.pityCount);
       banner.pityCount = 0;
